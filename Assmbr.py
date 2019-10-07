@@ -3,22 +3,10 @@ def firstPass(inpt,memory):
     unattendedLabels = {}
     for i in range(len(inpt)):
         instruction = inpt[i]
-        try:
-            if instruction[0][-1] ==":":
-                newInst = instruction[0][:-1]
-            else:
-                newInst = instruction[0]
-            if unattendedLabels[newInst]==0:
-                symbolTable[newInst] =i+1
-            # else:
-            #     print(newInst+" label is not used anywhere.")
-            #     sys.exit()     
-            #     symbolTable[instruction[]]
-        except:
-
-
-        if instruction[0]=="BRZ" or instruction[0]=="BRN" or instruction[0]=="BRP":
-            unattendedLabels[instruction[1]] = 0
+        if (len(instruction)==3):
+            if (instruction[0]!="DIV"):
+                symbolTable[instruction[0]]=i+1
+                
 
 
 
