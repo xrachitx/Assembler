@@ -1,5 +1,5 @@
 import sys
-def addToOpcode(instruction,address,assemblyToOpcode,memory):
+def addToOpcode(instruction,assemblyToOpcode,memory):
     opcodeTableValue = ["null","null","null","null","null"]
     if (instruction[0] == "STP" or instruction[0] == "CLA"):
         try:
@@ -24,13 +24,12 @@ def addToOpcode(instruction,address,assemblyToOpcode,memory):
             sys.exit()
         except IndexError:
             pass
-
         opcodeTableValue[0] = instruction[0]
         opcodeTableValue[4] = assemblyToOpcode[instruction[0]]
         if (instruction[0] =="BRZ" or instruction[0] =="BRP" or instruction[0] =="BRN"):
             if instruction[1].isdigit():
                 if memory[instruction[1]]=="nullValue":
-                    print("Error:memory address "+str(instruction[1])+ " is empty")  
+                    print("Error:memory address "+str(instruction[1])+ " is empty")
                     sys.exit()
             opcodeTableValue[1] = instruction[1]
             return opcodeTableValue
@@ -38,6 +37,7 @@ def addToOpcode(instruction,address,assemblyToOpcode,memory):
             try:
                 const=int(instruction[1][1:-1])
                 memLoc=32767-const
+                literalTable[const] = memLoc
                 opcodeTableValue[1]=memLoc
                 return opcodeTableValue
             except:
@@ -96,6 +96,7 @@ def addToOpcode(instruction,address,assemblyToOpcode,memory):
                     try:
                         const=int(instruction[i][1:-1])
                         memLoc=32767-const
+                        literalTable[const] = memLoc
                         opcodeTableValue[i]=memLoc
                     except:
                         print("Error:Wrong constant format")
@@ -112,36 +113,32 @@ def addToOpcode(instruction,address,assemblyToOpcode,memory):
         print("Not a valid instruction.")
         sys.exit()
 
-
-
-
-def firstPass(inpt,memory):
+def firstPass(inpt,memory,assemblyToOpcode):
     symbolTable = {}
     opcodeTable= {}
     literalTable = {}
-    unattendedLabels = {}
     for i in range(len(inpt)):
         instruction = inpt[i]
-        if (len(instruction)>=3):
-            if (instruction[0]!="DIV"):
-                symbolTable[instruction[0]]=i
-                # if instruction[1] == "STP" or instruction[1] == "CLA":
-                #     opcodeTable[i] = ("STP")
-                #     pass
-                # elif symbolTable
-
-
+        try:
+            instructionName = assemblyToOpcode[instruction[0]]
+            opcodeTable[i] = addToOpcode(instruction,assemblyToOpcode,memory,literalTable)
+        except KeyError:
+            try:
+                labelName = instruction[0][:-1]
+                instructionName = assemblyToOpcode[instruction[1]]
+                symbolTable[labelName] = i
+                opcodeTable[i] = addToOpcode(instruction[1:],assemblyToOpcode,memory,literalTable)
+            except:
+                print("Label "+ instruction[0][:-1]+" not defined correctly.")
 
 if __name__ == "__main__":
     assemblyToOpcode = {"CLA":"0000","LAC":"0001","SAC": "0010","ADD":"0011","SUB":"0100", "BRZ":"0101","BRN":"0110","BRP":"0111","INP":"1000","DSP":"1001","MUL":"1010","DIV":"1011","STP":"1100"}
     memory = {}
     for i in range(32768):
-        # print(int(str(bin(i+1))[2:]))
         if (i>28671):
             memory[str(i)] = 32767-i
         else:
             memory[str(i)] = "nullValue"
-    # print(assemblyToOpcode)
     print("Make sure that the input file is in the same directory as the Assemblr.py file")
     print("Enter the name for the input file.")
     name = input()     
@@ -150,4 +147,3 @@ if __name__ == "__main__":
     for x in f:
         l.append(x.split())
     print(l)
-    # for i in l:
