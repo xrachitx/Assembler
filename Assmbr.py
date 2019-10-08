@@ -130,6 +130,7 @@ def firstPass(inpt,memory,assemblyToOpcode):
                 opcodeTable[i] = addToOpcode(instruction[1:],assemblyToOpcode,memory,literalTable)
             except:
                 print("Label "+ instruction[0][:-1]+" not defined correctly.")
+                sys.exit()
 
 if __name__ == "__main__":
     assemblyToOpcode = {"CLA":"0000","LAC":"0001","SAC": "0010","ADD":"0011","SUB":"0100", "BRZ":"0101","BRN":"0110","BRP":"0111","INP":"1000","DSP":"1001","MUL":"1010","DIV":"1011","STP":"1100"}
