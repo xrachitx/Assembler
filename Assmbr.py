@@ -1,5 +1,5 @@
 import sys
-def addToOpcode(instruction,assemblyToOpcode,memory):
+def addToOpcode(instruction,assemblyToOpcode,memory,literalTable):
     opcodeTableValue = ["null","null","null","null","null"]
     if (instruction[0] == "STP" or instruction[0] == "CLA"):
         try:
@@ -11,7 +11,8 @@ def addToOpcode(instruction,assemblyToOpcode,memory):
             pass
         opcodeTableValue[0] = instruction[0]
         opcodeTableValue[4] = assemblyToOpcode[instruction[0]]
-        return opcodeTableValue
+        opcLit = [opcodeTableValue,literalTable]
+        return opcLit
     elif (instruction[0] == "LAC" or instruction[0] == "SAC" or instruction[0] == "ADD" or instruction[0] == "SUB" or instruction[0] =="INP" or instruction[0] =="DSP" or instruction[0] =="MUL" or instruction[0] =="BRZ" or instruction[0] =="BRP" or instruction[0] =="BRN"):
         if (len(instruction)<2):
             joined_string = ' '.join([str(v) for v in instruction])
@@ -31,15 +32,22 @@ def addToOpcode(instruction,assemblyToOpcode,memory):
                 if memory[instruction[1]]=="nullValue":
                     print("Error:memory address "+str(instruction[1])+ " is empty")
                     sys.exit()
+                else:
+                    memory[instruction[1]] = "used"
             opcodeTableValue[1] = instruction[1]
-            return opcodeTableValue
+            opcLit = [opcodeTableValue,literalTable]
+            return opcLit
         elif (instruction[1][0]=="'" or instruction[1][0]=='"'):
             try:
                 const=int(instruction[1][1:-1])
+                if (const>4095):
+                    print("Constant cannot exceed 12 bits of data, ie 4095(decimal).")
+                    sys.exit()
                 memLoc=32767-const
                 literalTable[const] = memLoc
                 opcodeTableValue[1]=memLoc
-                return opcodeTableValue
+                opcLit = [opcodeTableValue,literalTable]
+                return opcLit
             except:
                 print("Error:Wrong constant format")
                 sys.exit()
@@ -54,8 +62,10 @@ def addToOpcode(instruction,assemblyToOpcode,memory):
                         if memory[instruction[1]]=="nullValue":
                             print("Error:memory address "+str(instruction[1])+ " is empty")
                             sys.exit()
-                    opcodeTableValue[1] = instruction[1]   
-                    return opcodeTableValue
+                    opcodeTableValue[1] = instruction[1]
+                    memory[instruction[1]] = "used"
+                    opcLit = [opcodeTableValue,literalTable] 
+                    return opcLit
                 else:
                     print("Memory address "+ instruction[1]+" not available. Memory address cannot exceed 28671")
                     sys.exit()
@@ -83,6 +93,8 @@ def addToOpcode(instruction,assemblyToOpcode,memory):
                         if memory[instruction[i]]=="nullValue":
                             print("Error:memory address " +str(instruction[i])+" is empty")
                             sys.exit()
+                        else:
+                            memory[instruction[1]] = "used"
                     else:
                         if memory[instruction[i]]!="nullValue":
                             print("Error:memory address "+str(instruction[i])+ " is already in use")
@@ -95,6 +107,9 @@ def addToOpcode(instruction,assemblyToOpcode,memory):
                 if i==1:
                     try:
                         const=int(instruction[i][1:-1])
+                        if (const>4095):
+                            print("Constant cannot exceed 12 bits of data, ie 4095(decimal).")
+                            sys.exit()
                         memLoc=32767-const
                         literalTable[const] = memLoc
                         opcodeTableValue[i]=memLoc
@@ -107,7 +122,8 @@ def addToOpcode(instruction,assemblyToOpcode,memory):
             else:
                 print("Instruction format error: "+ instruction[i]+" is not a valid memory address.")
                 sys.exit()
-        return opcodeTableValue        
+        opcLit = [opcodeTableValue,literalTable]
+        return opcLit        
 
     else:
         print("Not a valid instruction.")
@@ -117,20 +133,30 @@ def firstPass(inpt,memory,assemblyToOpcode):
     symbolTable = {}
     opcodeTable= {}
     literalTable = {}
+    ans = []
     for i in range(len(inpt)):
         instruction = inpt[i]
         try:
             instructionName = assemblyToOpcode[instruction[0]]
-            opcodeTable[i] = addToOpcode(instruction,assemblyToOpcode,memory,literalTable)
+            opcLit = addToOpcode(instruction,assemblyToOpcode,memory,literalTable)
+            opcodeTable[i] = opcLit[0]
+            literalTable = opcLit[1]
         except KeyError:
             try:
                 labelName = instruction[0][:-1]
+                # print(labelName)
                 instructionName = assemblyToOpcode[instruction[1]]
                 symbolTable[labelName] = i
-                opcodeTable[i] = addToOpcode(instruction[1:],assemblyToOpcode,memory,literalTable)
+                opcLit = addToOpcode(instruction[1:],assemblyToOpcode,memory,literalTable)
+                opcodeTable[i] = opcLit[0]
+                literalTable = opcLit[1]
             except:
                 print("Label "+ instruction[0][:-1]+" not defined correctly.")
                 sys.exit()
+    ans.append(symbolTable)
+    ans.append(opcodeTable)
+    ans.append(literalTable)
+    return ans
 
 if __name__ == "__main__":
     assemblyToOpcode = {"CLA":"0000","LAC":"0001","SAC": "0010","ADD":"0011","SUB":"0100", "BRZ":"0101","BRN":"0110","BRP":"0111","INP":"1000","DSP":"1001","MUL":"1010","DIV":"1011","STP":"1100"}
@@ -147,4 +173,8 @@ if __name__ == "__main__":
     l = []
     for x in f:
         l.append(x.split())
-    print(l)
+    # print(l)
+    t = firstPass(l,memory,assemblyToOpcode)
+    print(t[0])
+    print(t[1])
+    print(t[2])
