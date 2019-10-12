@@ -137,7 +137,6 @@ def firstPass(inpt,memory,assemblyToOpcode):
                 if(instruction[0] not in symbolTable.keys()):
                     if(len(instruction[0])!=0 and not instruction[0][0].isdigit() and instruction[0].isalnum()):
                         if(instruction[0] not in assemblyToOpcode.keys()):
-                            #symbolTable[0] = instruction[0]
                             if (instruction[2][0]=="'" or instruction[2][0]=='"'):
                                 try:
                                     const=int(instruction[2][1:-1])
@@ -145,7 +144,6 @@ def firstPass(inpt,memory,assemblyToOpcode):
                                         print("Error: Constant cannot exceed 12 bits of data, ie 4095(decimal).")
                                         sys.exit()
                                     memLoc=32767-const
-                                    #literalTable[const] = memLoc
                                     symbolTable[instruction[0]]=str(memLoc)
                                     labelorvariableTable[instruction[0]]="V"            #capital V
                                     opcodeTable[startCounter + i-1]=["DW",instruction[0],assemblyToOpcode["DW"]]    
@@ -211,7 +209,6 @@ def secondPass(symbolTable,opcodeTable,literalTable,labelorvariableTable, startC
             pass
         elif instruction[1]=="null":
             ans.append(instruction[2])
-        # elif instruction[0]: 
         else:
             if instruction[1].isdigit():
                 st=""
@@ -256,11 +253,38 @@ if __name__ == "__main__":
     l = []
     for x in f:
         l.append(x.split())
-    # print(l)
     t = firstPass(l,memory,assemblyToOpcode)
-    print(t[0])
-    print(t[1])
-    print(t[2])
+    print()
+    print("SYMBOL TABLE:")
+    print("SYMBOL TYPE     MEMORY ADDRESS")
+    for i in (t[0]):
+        address = str(bin(int(t[0][i])))[2:]
+        while(len(address)<15):
+            address="0"+address
+        print(str(i)+ "\t"+ str(t[3][i])+"\t" + address)
+    print()
+    print("OPCODE TABLE:")
+    print("ASSEMBLY OPCODE      OPERAND   MACHINE OPCODE   MEMORY ADDRESS")
+    for i in t[1]:
+        x = t[1][i]
+        address = str(bin(int(i)))[2:]
+        if (x[1]=="null"):
+            operand = "-"
+        else:
+            operand = x[1]            
+        while(len(address)<15):
+            address="0"+address
+        print("\t"+x[0] + "\t\t"+ operand + "\t"+ x[2] + "\t\t"+address)
+    print()
+    print("LITERAL TABLE:")
+    print("LITERAL MEMORY ADDRESS")
+    for i in t[2]:
+        x = t[2][i]
+        address = str(bin(int(x)))[2:]        
+        while(len(address)<15):
+            address="0"+address
+        print("   "+str(i)+ "\t"+ address)
+    print()
     displ=secondPass(t[0],t[1],t[2],t[3],t[4])
     print("MEMORY ADDRESS     MACHINE CODE")
     cnt = 0
