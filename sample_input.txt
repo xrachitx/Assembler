@@ -1,4 +1,4 @@
-CLA E
+CLA
 INP 157
 INP 158
 LAC 157
@@ -11,5 +11,5 @@ CLA
 BRZ L2
 L1: DSP 158
 BRZ L2
-L2: STPpppppppppp
+L2: STP
 I DW "1"

@@ -91,84 +91,115 @@ def firstPass(inpt,memory,assemblyToOpcode):
     opcodeTable= {}
     literalTable = {}
     ans = []
+    start = False
+    startCounter = 0
+    end = False
     for i in range(len(inpt)):
         instruction = inpt[i]
-        if (len(instruction)==3 and instruction[1]=="DW"):
-            if (len(instruction)<3):
-                joined_string = ' '.join([str(v) for v in instruction])
-                print("Error: Less arguments in the instruction- "+joined_string)
-                sys.exit()
-            try:
-                x = instruction[3]
-                joined_string = ' '.join([str(v) for v in instruction])
-                print("Error: Too many arguments in the instruction- "+ joined_string)
-                sys.exit()
-            except IndexError:
-                pass
-            if(instruction[0] not in symbolTable.keys()):
-                if(len(instruction[0])!=0 and not instruction[0][0].isdigit() and instruction[0].isalnum()):
-                    if(instruction[0] not in assemblyToOpcode.keys()):
-                        #symbolTable[0] = instruction[0]
-                        if (instruction[2][0]=="'" or instruction[2][0]=='"'):
-                            try:
-                                const=int(instruction[2][1:-1])
-                                if (const>4095):
-                                    print("Error: Constant cannot exceed 12 bits of data, ie 4095(decimal).")
-                                    sys.exit()
-                                memLoc=32767-const
-                                #literalTable[const] = memLoc
-                                symbolTable[instruction[0]]=str(memLoc)
-                                labelorvariableTable[instruction[0]]="V"            #capital V
-                                opcodeTable[i]=["DW",instruction[0],assemblyToOpcode["DW"]]    
-                            except:
-                                print("Error: Wrong constant format")
-                                sys.exit()    
-                        else:
-                            print("Error: Wrong variable declared "+instruction[2]+" .Only constants are allowed.")        
-                    else :
-                        print("Error: Opcodes cannot be used as variable names: "+instruction[0])          
+        if (not start):
+            if instruction[0] == "START":
+                if len(instruction)<2:
+                    print("Error: Less parameters defined in the instruction START")
+                elif len(instruction)>2:
+                    print("Error: More than required parameters defined in the instruction START")
                 else:
-                    print("Error: Instruction format error: "+ instruction[1]+" is not a valid input format.")
-                    sys.exit()
-            else:
-                print("Error: Variable: " +instruction[0]+ " already declared")        
+                    start = True
+                    if (instruction[1].isdigit()):
+                        startCounter = int(instruction[1])
+                        for j in range(i+1, len(inpt)):
+                            memory[str((j-1)+startCounter)] = "used"
+                    else:
+                        print("Error: Start format incorrect. Needs to define an address.")
+                    
+                    
         else:
-            try:
-                instructionName = assemblyToOpcode[instruction[0]]
-                opcLit = addToOpcode(instruction,assemblyToOpcode,memory,literalTable)
-                opcodeTable[i] = opcLit[0]
-                literalTable = opcLit[1]
-            except KeyError:
-                if instruction[0][-1]!=":":
-                    print("Error: "+instruction[0]+" is not a valid opcode.")
+            if (instruction[0]=="START"):
+                print("Error: START is defined multiple times in the program.")
+            if (instruction[0]=="END"):
+                end = True
+                break
+            if (len(instruction)==3 and instruction[1]=="DW"):
+                
+                if (len(instruction)<3):
+                    joined_string = ' '.join([str(v) for v in instruction])
+                    print("Error: Less arguments in the instruction- "+joined_string)
                     sys.exit()
-                else:
-                    try:
-                        labelName = instruction[0][:-1]
-                        # print(instruction)
-                        # print(labelName)
-                        if(labelName not in symbolTable.keys()):
-                            instructionName = assemblyToOpcode[instruction[1]]
-                            symbolTable[labelName] = i
-                            labelorvariableTable[labelName]="L"
-                            opcLit = addToOpcode(instruction[1:],assemblyToOpcode,memory,literalTable)
-                            opcodeTable[i] = opcLit[0]
-                            literalTable = opcLit[1]
-                        else:
-                            print("Error: Label: " +labelName+ " already declared")    
-
-                    except:
-                        print("Label "+ instruction[0][:-1]+" not defined correctly.")
+                try:
+                    x = instruction[3]
+                    joined_string = ' '.join([str(v) for v in instruction])
+                    print("Error: Too many arguments in the instruction- "+ joined_string)
+                    sys.exit()
+                except IndexError:
+                    pass
+                if(instruction[0] not in symbolTable.keys()):
+                    if(len(instruction[0])!=0 and not instruction[0][0].isdigit() and instruction[0].isalnum()):
+                        if(instruction[0] not in assemblyToOpcode.keys()):
+                            #symbolTable[0] = instruction[0]
+                            if (instruction[2][0]=="'" or instruction[2][0]=='"'):
+                                try:
+                                    const=int(instruction[2][1:-1])
+                                    if (const>4095):
+                                        print("Error: Constant cannot exceed 12 bits of data, ie 4095(decimal).")
+                                        sys.exit()
+                                    memLoc=32767-const
+                                    #literalTable[const] = memLoc
+                                    symbolTable[instruction[0]]=str(memLoc)
+                                    labelorvariableTable[instruction[0]]="V"            #capital V
+                                    opcodeTable[startCounter + i-1]=["DW",instruction[0],assemblyToOpcode["DW"]]    
+                                except:
+                                    print("Error: Wrong constant format")
+                                    sys.exit()    
+                            else:
+                                print("Error: Wrong variable declared "+instruction[2]+" .Only constants are allowed.")        
+                        else :
+                            print("Error: Opcodes cannot be used as variable names: "+instruction[0])          
+                    else:
+                        print("Error: Instruction format error: "+ instruction[1]+" is not a valid input format.")
                         sys.exit()
+                else:
+                    print("Error: Variable: " +instruction[0]+ " already declared")        
+            else:
+                try:
+                    instructionName = assemblyToOpcode[instruction[0]]
+                    opcLit = addToOpcode(instruction,assemblyToOpcode,memory,literalTable)
+                    opcodeTable[startCounter + i-1] = opcLit[0]
+                    literalTable = opcLit[1]
+                except KeyError:
+                    if instruction[0][-1]!=":":
+                        print("Error: "+instruction[0]+" is not a valid opcode.")
+                        sys.exit()
+                    else:
+                        try:
+                            labelName = instruction[0][:-1]
+                            # print(instruction)
+                            # print(labelName)
+                            if(labelName not in symbolTable.keys()):
+                                instructionName = assemblyToOpcode[instruction[1]]
+                                symbolTable[labelName] = startCounter + i-1
+                                labelorvariableTable[labelName]="L"
+                                opcLit = addToOpcode(instruction[1:],assemblyToOpcode,memory,literalTable)
+                                opcodeTable[startCounter + i-1] = opcLit[0]
+                                literalTable = opcLit[1]
+                            else:
+                                print("Error: Label: " +labelName+ " already declared")    
+
+                        except:
+                            print("Label "+ instruction[0][:-1]+" not defined correctly.")
+                            sys.exit()
+    if not start:
+        print("Error: Start not specified.")
+    elif (not end):
+        print("Error: End of program not specified.")
     ans.append(symbolTable)
     ans.append(opcodeTable)
     ans.append(literalTable)
     ans.append(labelorvariableTable)
+    ans.append(startCounter)
     return ans
-def secondPass(symbolTable,opcodeTable,literalTable,labelorvariableTable):
+def secondPass(symbolTable,opcodeTable,literalTable,labelorvariableTable, startCounter):
     ans=[]
     for i in range(len(opcodeTable)):
-        instruction=opcodeTable[i]
+        instruction=opcodeTable[startCounter + i]
         if instruction[0]=="DW":
             pass
         elif instruction[1]=="null":
@@ -223,6 +254,6 @@ if __name__ == "__main__":
     print(t[0])
     print(t[1])
     print(t[2])
-    displ=secondPass(t[0],t[1],t[2],t[3])
+    displ=secondPass(t[0],t[1],t[2],t[3],t[4])
     for i in displ:
         print(i)
