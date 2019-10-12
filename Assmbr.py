@@ -77,12 +77,13 @@ def addToOpcode(instruction,assemblyToOpcode,memory,literalTable):
                     opcLit = [opcodeTableValue,literalTable]
                     return opcLit
                 else :
-                    print("Error: Opcodes cannot be used as variable names")          
+                    print("Error: Opcodes cannot be used as variable names")
+                    sys.exit()          
             else:
                 print("Error: Instruction format error: "+ instruction[1]+" is not a valid input format.")
                 sys.exit()
     else:
-        print("Not a valid instruction.")
+        print("Error: Not a valid instruction.")
         sys.exit()
 
 def firstPass(inpt,memory,assemblyToOpcode):
@@ -100,8 +101,10 @@ def firstPass(inpt,memory,assemblyToOpcode):
             if instruction[0] == "START":
                 if len(instruction)<2:
                     print("Error: Less parameters defined in the instruction START")
+                    sys.exit()
                 elif len(instruction)>2:
                     print("Error: More than required parameters defined in the instruction START")
+                    sys.exit()
                 else:
                     start = True
                     if (instruction[1].isdigit()):
@@ -110,11 +113,11 @@ def firstPass(inpt,memory,assemblyToOpcode):
                             memory[str((j-1)+startCounter)] = "used"
                     else:
                         print("Error: Start format incorrect. Needs to define an address.")
-                    
-                    
+                        sys.exit()
         else:
             if (instruction[0]=="START"):
                 print("Error: START is defined multiple times in the program.")
+                sys.exit()
             if (instruction[0]=="END"):
                 end = True
                 break
@@ -150,14 +153,17 @@ def firstPass(inpt,memory,assemblyToOpcode):
                                     print("Error: Wrong constant format")
                                     sys.exit()    
                             else:
-                                print("Error: Wrong variable declared "+instruction[2]+" .Only constants are allowed.")        
+                                print("Error: Wrong variable declared "+instruction[2]+" .Only constants are allowed.")
+                                sys.exit()        
                         else :
-                            print("Error: Opcodes cannot be used as variable names: "+instruction[0])          
+                            print("Error: Opcodes cannot be used as variable names: "+instruction[0])
+                            sys.exit()          
                     else:
                         print("Error: Instruction format error: "+ instruction[1]+" is not a valid input format.")
                         sys.exit()
                 else:
-                    print("Error: Variable: " +instruction[0]+ " already declared")        
+                    print("Error: Variable: " +instruction[0]+ " already declared")
+                    sys.exit()        
             else:
                 try:
                     instructionName = assemblyToOpcode[instruction[0]]
@@ -171,8 +177,6 @@ def firstPass(inpt,memory,assemblyToOpcode):
                     else:
                         try:
                             labelName = instruction[0][:-1]
-                            # print(instruction)
-                            # print(labelName)
                             if(labelName not in symbolTable.keys()):
                                 instructionName = assemblyToOpcode[instruction[1]]
                                 symbolTable[labelName] = startCounter + i-1
@@ -181,15 +185,18 @@ def firstPass(inpt,memory,assemblyToOpcode):
                                 opcodeTable[startCounter + i-1] = opcLit[0]
                                 literalTable = opcLit[1]
                             else:
-                                print("Error: Label: " +labelName+ " already declared")    
+                                print("Error: Label: " +labelName+ " already declared")
+                                sys.exit()    
 
                         except:
-                            print("Label "+ instruction[0][:-1]+" not defined correctly.")
+                            print("Error: Label "+ instruction[0][:-1]+" not defined correctly.")
                             sys.exit()
     if not start:
         print("Error: Start not specified.")
+        sys.exit()
     elif (not end):
         print("Error: End of program not specified.")
+        sys.exit()
     ans.append(symbolTable)
     ans.append(opcodeTable)
     ans.append(literalTable)
@@ -255,5 +262,11 @@ if __name__ == "__main__":
     print(t[1])
     print(t[2])
     displ=secondPass(t[0],t[1],t[2],t[3],t[4])
+    print("MEMORY ADDRESS     MACHINE CODE")
+    cnt = 0
     for i in displ:
-        print(i)
+        address = str(bin(t[4]+cnt))[2:]
+        while(len(address)<15):
+            address="0"+address
+        print(address+"    "+i)
+        cnt +=1
