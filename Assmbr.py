@@ -120,6 +120,9 @@ def firstPass(inpt,memory,assemblyToOpcode):
                 sys.exit()
             if (instruction[0]=="END"):
                 end = True
+                if (len(instruction)>1):
+                    print("Error: More than required parameters defined in the instruction END")
+                    sys.exit()
                 break
             if (len(instruction)==3 and instruction[1]=="DW"):
                 
@@ -151,7 +154,7 @@ def firstPass(inpt,memory,assemblyToOpcode):
                                     print("Error: Wrong constant format")
                                     sys.exit()    
                             else:
-                                print("Error: Wrong variable declared "+instruction[2]+" .Only constants are allowed.")
+                                print("Error: Wrong variable declaration for "+instruction[0]+". Only constants are allowed.")
                                 sys.exit()        
                         else :
                             print("Error: Opcodes cannot be used as variable names: "+instruction[0])
@@ -246,7 +249,10 @@ if __name__ == "__main__":
             memory[str(i)] = 32767-i
         else:
             memory[str(i)] = "nullValue"
-    print("Make sure that the input file is in the same directory as the Assemblr.py file")
+    a = open("ASSUMPTIONS.txt","r")
+    for i in a:
+        print(i)
+    a.close()
     print("Enter the name for the input file.")
     name = input()     
     f = open(name, "r")
@@ -255,6 +261,7 @@ if __name__ == "__main__":
         l.append(x.split())
     t = firstPass(l,memory,assemblyToOpcode)
     print()
+    displ=secondPass(t[0],t[1],t[2],t[3],t[4])
     print("SYMBOL TABLE:")
     print("SYMBOL TYPE     MEMORY ADDRESS")
     for i in (t[0]):
@@ -285,7 +292,7 @@ if __name__ == "__main__":
             address="0"+address
         print("   "+str(i)+ "\t"+ address)
     print()
-    displ=secondPass(t[0],t[1],t[2],t[3],t[4])
+
     print("MEMORY ADDRESS     MACHINE CODE")
     cnt = 0
     for i in displ:
