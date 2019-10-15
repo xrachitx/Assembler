@@ -1,5 +1,5 @@
-START 100
-    CLA
+START 100 #sjdfsd
+    CLA 
     LAC A
     SUB B
     BRN L1
@@ -13,3 +13,4 @@ L2: STP
 A DW '3'
 B DW '4'
 END
+

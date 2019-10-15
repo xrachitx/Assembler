@@ -3,12 +3,16 @@
 import sys
 def addToOpcode(instruction,assemblyToOpcode,memory,literalTable):
     opcodeTableValue = ["null","null","null"]
+    err = True
     if (instruction[0] == "STP" or instruction[0] == "CLA"):
         try:
             x = instruction[1]
-            joined_string = ' '.join([str(v) for v in instruction])
-            print("Error: Too many arguments in the instruction- "+ joined_string)
-            sys.exit()
+            if (x[0]=="#"):
+                err = False
+            if err:
+                joined_string = ' '.join([str(v) for v in instruction])
+                print("Error: Too many arguments in the instruction- "+ joined_string)
+                sys.exit()
         except IndexError:
             pass
         opcodeTableValue[0] = instruction[0]
@@ -22,9 +26,12 @@ def addToOpcode(instruction,assemblyToOpcode,memory,literalTable):
             sys.exit()
         try:
             x = instruction[2]
-            joined_string = ' '.join([str(v) for v in instruction])
-            print("Error: Too many arguments in the instruction- "+ joined_string)
-            sys.exit()
+            if (x[0]=="#"):
+                err = False
+            if err:
+                joined_string = ' '.join([str(v) for v in instruction])
+                print("Error: Too many arguments in the instruction- "+ joined_string)
+                sys.exit()
         except IndexError:
             pass
         opcodeTableValue[0] = instruction[0]
@@ -83,8 +90,12 @@ def addToOpcode(instruction,assemblyToOpcode,memory,literalTable):
                 print("Error: Instruction format error: "+ instruction[1]+" is not a valid input format.")
                 sys.exit()
     else:
-        print("Error: Not a valid instruction.")
-        sys.exit()
+        x = instruction[0]
+        if (x[0]=="#"):
+            pass
+        else:
+            print("Error: Not a valid instruction.")
+            sys.exit()
 
 def firstPass(inpt,memory,assemblyToOpcode):
     symbolTable = {}
@@ -103,8 +114,18 @@ def firstPass(inpt,memory,assemblyToOpcode):
                     print("Error: Less parameters defined in the instruction START")
                     sys.exit()
                 elif len(instruction)>2:
-                    print("Error: More than required parameters defined in the instruction START")
-                    sys.exit()
+                    if instruction[2][0]=="#":
+                        start = True
+                        if (instruction[1].isdigit()):
+                            startCounter = int(instruction[1])
+                            for j in range(i+1, len(inpt)):
+                                memory[str((j-1)+startCounter)] = "used"
+                        else:
+                            print("Error: Start format incorrect. Needs to define an address.")
+                            sys.exit()
+                    else:    
+                        print("Error: More than required parameters defined in the instruction START")
+                        sys.exit()
                 else:
                     start = True
                     if (instruction[1].isdigit()):
@@ -114,6 +135,9 @@ def firstPass(inpt,memory,assemblyToOpcode):
                     else:
                         print("Error: Start format incorrect. Needs to define an address.")
                         sys.exit()
+            else:
+                print("Error: The program should always begin with START.")
+                sys.exit()
         else:
             if (instruction[0]=="START"):
                 print("Error: START is defined multiple times in the program.")
@@ -121,20 +145,26 @@ def firstPass(inpt,memory,assemblyToOpcode):
             if (instruction[0]=="END"):
                 end = True
                 if (len(instruction)>1):
-                    print("Error: More than required parameters defined in the instruction END")
-                    sys.exit()
+                    if (instruction[1][0]=="#"):
+                        pass
+                    else:
+                        print("Error: More than required parameters defined in the instruction END")
+                        sys.exit()
                 break
-            if (len(instruction)==3 and instruction[1]=="DW"):
+            if (len(instruction)>=3 and instruction[1]=="DW"):
                 
                 if (len(instruction)<3):
                     joined_string = ' '.join([str(v) for v in instruction])
                     print("Error: Less arguments in the instruction- "+joined_string)
-                    sys.exit()
+                    sys.exit()  
                 try:
                     x = instruction[3]
-                    joined_string = ' '.join([str(v) for v in instruction])
-                    print("Error: Too many arguments in the instruction- "+ joined_string)
-                    sys.exit()
+                    if x[0]=="#":
+                        pass
+                    else:
+                        joined_string = ' '.join([str(v) for v in instruction])
+                        print("Error: Too many arguments in the instruction- "+ joined_string)
+                        sys.exit()
                 except IndexError:
                     pass
                 if(instruction[0] not in symbolTable.keys()):
@@ -204,6 +234,7 @@ def firstPass(inpt,memory,assemblyToOpcode):
     ans.append(labelorvariableTable)
     ans.append(startCounter)
     return ans
+
 def secondPass(symbolTable,opcodeTable,literalTable,labelorvariableTable, startCounter):
     ans=[]
     for i in range(len(opcodeTable)):
@@ -249,7 +280,7 @@ if __name__ == "__main__":
             memory[str(i)] = 32767-i
         else:
             memory[str(i)] = "nullValue"
-    a = open("ASSUMPTIONS.txt","r")
+    a = open("DOCUMENTATION.txt","r")
     for i in a:
         print(i)
     a.close()
