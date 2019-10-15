@@ -80,6 +80,9 @@ def addToOpcode(instruction,assemblyToOpcode,memory,literalTable):
                     sys.exit()
             elif(len(instruction[1])!=0 and not instruction[1][0].isdigit() and instruction[1].isalnum()):
                 if(instruction[1] not in assemblyToOpcode.keys()):
+                    if instruction[0]=="INP" or instruction[0]=="SAC":
+                        print("Error: Cannot store to a variable.")
+                        sys.exit()
                     opcodeTableValue[1] = instruction[1]
                     opcLit = [opcodeTableValue,literalTable]
                     return opcLit
