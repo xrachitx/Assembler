@@ -1,11 +1,11 @@
-# Assembler
+Assembler
 
-#Group
+Group
 -------------
 *2018302 Rachit Mittal
 *2018313 Siddharth Sadhwani
 
-#Introduction
+Introduction
 --------------------
 Our Assembler(12 bit) converts assembly language code to machine language(binary) 
 that can be executed by the microprocessor. It is a two-pass assembler i.e. it parses
@@ -40,7 +40,7 @@ Assembly Code      Machine Code      Meaning
       1011                        DIV            Divide accumulator contents by address content.
       1100 		      STP	         Stop execution
  
-#Input format followed in our assembler:
+Input format followed in our assembler:
 -----------------------------------------------------------
 
 ->Make sure that the input file is in the same directory as the Assemblr.py file.
@@ -61,11 +61,11 @@ Assembly Code      Machine Code      Meaning
 ->A particular Label or Variable cannot be declared twice.
 ->Branching statement only branch to a Label or an address.
 
-#Input
+Input
 -----------
 A file containing assembly code according to the given instructions above.
 
-#Output
+Output
 -------------
 Opcode Table, Symbol Table and Literal Table followed by the respective translated 
 memory-mapped machine code.
